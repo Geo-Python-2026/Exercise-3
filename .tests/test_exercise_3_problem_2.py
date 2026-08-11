@@ -44,7 +44,7 @@ class TestProblem2:
         assert len(variables['comfortable']) == 0
 
     @points(2, "Part 2: Loop not found in source code!")
-    def test_problem2_part_2_loop(self, Problem2):
+    def test_problem2_part_2_loop(self, problem2):
         section_data, namespace = problem2
         section = "Part 2" 
         source = section_data[section]['source']

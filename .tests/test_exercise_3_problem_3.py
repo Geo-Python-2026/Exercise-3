@@ -44,7 +44,7 @@ class TestProblem3:
         assert len(variables['south_east']) == 0
 
     @points(0.5, "Problem 3, Part 2: Variable `n` is not correctly defined!")
-    def test_problem3_part_2_n(self, Problem3):
+    def test_problem3_part_2_n(self, problem3):
         section_data, namespace = problem3
         section = "Part 2"  # Define the section key
         variables = section_data[section]['variables']
@@ -109,9 +109,9 @@ class TestProblem3:
         section = "Part 6"
         variables = section_data[section]['variables']
         
-        assert int(variables['north_west_share']) == 12
-        assert int(variables['south_west_share']) == 47
-        assert int(variables['south_east_share']) == 32
-        assert int(variables['north_east_share']) == 9
+        assert round(variables['north_west_share']) == 12
+        assert round(variables['south_west_share']) == 47
+        assert round(variables['south_east_share']) == 32
+        assert round(variables['north_east_share']) == 9
         
     

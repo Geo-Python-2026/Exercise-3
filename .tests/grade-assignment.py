@@ -19,6 +19,7 @@ class PointsCounter:
         self.possible_points = 0
         self.error_messages = []
         self.bonus_tasks = 0
+        self.load_errors = {}
 
     @pytest.hookimpl(hookwrapper=True)
     def pytest_runtest_makereport(self, item, call):
@@ -45,6 +46,10 @@ class PointsCounter:
                     self.error_messages.append(error_message)
             except KeyError:
                 pass
+        elif report.when == "setup" and report.failed:
+            test_file = item.nodeid.split("::")[0]
+            error = str(call.excinfo.value) if call.excinfo else str(report.longrepr)
+            self.load_errors.setdefault(error, set()).add(test_file)
 
 
 def format_feedback(student_username, points_counter):
@@ -67,21 +72,33 @@ def format_feedback(student_username, points_counter):
     possible_points = points_counter.possible_points
     bonus_tasks = points_counter.bonus_tasks
     error_messages = points_counter.error_messages
+    load_errors = points_counter.load_errors
 
-    percentage = float(points) / possible_points
+    if points > 0:
+        percentage = float(points) / possible_points
 
     body = ""
     reaction = ""
 
+    if load_errors:
+        body += (
+            "**Some parts of your submission could not be graded** "
+            "because the notebook could not be run:\n"
+        )
+        for error, test_files in load_errors.items():
+            files = ", ".join(sorted(f.rsplit("/", 1)[-1] for f in test_files))
+            body += f"- `{files}`: {error}\n"
+        body += "\n"
+
     if points:
-        body = (
+        body += (
             f"**Great job!**\n"
             "\n"
             "With the latest commit and push, your solution for the exercise "
             f"achieves **{points:1.1f} point{'s' if points > 1 else ''} out of "
             f"{possible_points:1.0f}** possible points. "
         )
-        if percentage < 1:
+        if percentage < 1 or load_errors:
             body += (
                 "**Keep up the good work!**\n\n"
             )
@@ -112,7 +129,7 @@ def format_feedback(student_username, points_counter):
                 )
 
     else:  # 0 points so far
-        body = (
+        body += (
             "So far, your solution to the exercise "
             "has not gained any points.\n"
             "No worries: until the deadline, you can submit as many new "
